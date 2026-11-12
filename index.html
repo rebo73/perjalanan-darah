@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Petualangan Darah — Sistem Peredaran Darah Manusia</title>
+<style>
+:root{
+  --red:#e53935; --red-dark:#b71c1c; --red-light:#ffcdd2;
+  --blue:#1e88e5; --blue-dark:#0d47a1; --blue-light:#bbdefb;
+  --green:#43a047; --yellow:#fbc02d;
+  --text:#2d3436; --shadow:0 6px 24px rgba(0,0,0,.1); --r:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Segoe UI',Tahoma,sans-serif;
+  background:linear-gradient(135deg,#fff8f5 0%,#ffeef0 60%,#e3f2fd 100%);
+  color:var(--text);line-height:1.6;min-height:100vh;padding:16px;
+}
+.app{max-width:1000px;margin:0 auto}
+
+/* ===== HEADER ===== */
+header{
+  background:linear-gradient(135deg,var(--red) 0%,var(--red-dark) 100%);
+  color:#fff;padding:22px 26px;border-radius:var(--r);
+  margin-bottom:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+header::after{content:"🩸";position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:4rem;opacity:.15}
+header h1{font-size:1.55rem;margin-bottom:4px}
+header p{font-size:.92rem;opacity:.92}
+
+/* ===== NAV ===== */
+nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.nav-btn{
+  background:#fff;border:2px solid #ffe0e0;padding:9px 16px;border-radius:999px;
+  cursor:pointer;font-weight:600;font-size:.84rem;color:var(--text);
+  transition:all .2s;display:flex;align-items:center;gap:4px;
+}
+.nav-btn:hover{border-color:var(--red);transform:translateY(-2px)}
+.nav-btn.active{background:var(--red);color:#fff;border-color:var(--red)}
+.nav-btn .check{color:var(--green);font-weight:900;font-size:1rem}
+.nav-btn.active .check{color:#fff}
+
+/* ===== SCREEN ===== */
+.screen{display:none;animation:fadeIn .4s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.card{
+  background:#fff;border-radius:var(--r);padding:26px;box-shadow:var(--shadow);margin-bottom:20px;
+}
+.card h2{color:var(--red-dark);margin-bottom:14px;font-size:1.35rem}
+.card h3{color:var(--red);margin:16px 0 8px;font-size:1.05rem}
+.card p{margin-bottom:10px}
+
+/* ===== BUTTON ===== */
+.btn{
+  background:linear-gradient(135deg,var(--red),var(--red-dark));color:#fff;border:none;
+  padding:12px 24px;border-radius:999px;font-weight:700;font-size:.95rem;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;box-shadow:0 4px 14px rgba(229,57,53,.35);
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(229,57,53,.45)}
+.btn:active{transform:translateY(0)}
+.btn.blue{background:linear-gradient(135deg,var(--blue),var(--blue-dark));box-shadow:0 4px 14px rgba(30,136,229,.35)}
+.btn.green{background:linear-gradient(135deg,#66bb6a,var(--green));box-shadow:0 4px 14px rgba(67,160,71,.35)}
+
+/* ===== PEMANTIK ===== */
+.story-box{
+  background:linear-gradient(135deg,#fff3e0,#ffe0b2);
+  border-left:6px solid var(--yellow);border-radius:14px;padding:20px;margin:16px 0;
+}
+.story-box .emoji{font-size:2.6rem;display:block;margin-bottom:8px}
+.riddle{
+  background:linear-gradient(135deg,#e8f5e9,#c8e6c9);
+  border:2px dashed var(--green);border-radius:14px;padding:20px;margin:16px 0;text-align:center;
+}
+.riddle .q{font-size:1.1rem;font-weight:700;color:#1b5e20;margin-bottom:10px}
+.riddle .a{
+  display:none;background:#fff;border-radius:12px;padding:14px;margin-top:12px;
+  font-weight:600;color:#1b5e20;animation:fadeIn .5s ease;
+}
+.riddle .a.show{display:block}
+
+.heart-demo{
+  text-align:center;padding:20px;background:linear-gradient(135deg,#ffe0e0,#ffcdd2);
+  border-radius:16px;margin:16px 0;
+}
+.heart-big{font-size:5rem;display:inline-block;transition:transform .1s}
+.heart-big.beating{animation:heartbeat 1s infinite}
+@keyframes heartbeat{
+  0%,100%{transform:scale(1)}15%{transform:scale(1.18)}30%{transform:scale(1)}
+  45%{transform:scale(1.1)}60%{transform:scale(1)}
+}
+.bpm-display{font-size:1.3rem;font-weight:800;color:var(--red-dark);margin-top:8px;min-height:32px}
+
+/* ===== ORGAN CARDS ===== */
+.organ-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-top:16px}
+.organ-card{
+  background:linear-gradient(135deg,#fff,#f8f9fa);border:2px solid #e0e0e0;border-radius:16px;
+  padding:18px 12px;text-align:center;cursor:pointer;transition:all .25s;position:relative;
+}
+.organ-card:hover{transform:translateY(-5px);border-color:var(--red);box-shadow:0 8px 22px rgba(229,57,53,.18)}
+.organ-card.revealed{border-color:var(--green);background:linear-gradient(135deg,#e8f5e9,#f1f8e9)}
+.organ-card.revealed::after{content:"✓";position:absolute;top:6px;right:10px;color:var(--green);font-weight:900}
+.organ-card .icon{font-size:2.6rem;margin-bottom:6px}
+.organ-card .name{font-weight:700;font-size:.92rem}
+.organ-card .desc{
+  display:none;font-size:.8rem;color:#555;margin-top:8px;line-height:1.4;
+}
+.organ-card.revealed .desc{display:block;animation:fadeIn .35s ease}
+
+/* ===== MATCHING GAME ===== */
+.match-wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px}
+.match-col h3{text-align:center;color:var(--red-dark);margin-bottom:10px;font-size:1rem}
+.match-item{
+  background:#fff;border:2px solid #e0e0e0;border-radius:12px;padding:12px 14px;
+  margin-bottom:10px;cursor:pointer;font-weight:600;font-size:.88rem;transition:all .2s;
+}
+.match-item:hover{border-color:var(--red);transform:translateX(3px)}
+.match-item.selected{background:var(--red-light);border-color:var(--red);transform:scale(1.02)}
+.match-item.matched{background:#e8f5e9;border-color:var(--green);color:#2e7d32;cursor:default;opacity:.85}
+.match-item.matched::before{content:"✓ "}
+.match-item.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.match-feedback{text-align:center;font-weight:700;margin-top:12px;min-height:26px;color:var(--green)}
+
+/* ===== FLOW DIAGRAM ===== */
+.flow{display:flex;flex-direction:column;gap:6px;margin-top:16px}
+.flow-step{
+  display:flex;align-items:center;gap:14px;background:#f8f9fa;border:2px solid #e0e0e0;
+  border-radius:14px;padding:14px 18px;transition:all .4s;opacity:.5;
+}
+.flow-step.active{opacity:1;background:linear-gradient(135deg,#ffe0e0,#ffcdd2);border-color:var(--red);transform:scale(1.02);box-shadow:0 4px 16px rgba(229,57,53,.2)}
+.flow-step.done{opacity:1;background:#e8f5e9;border-color:var(--green)}
+.flow-step .num{
+  width:36px;height:36px;border-radius:50%;background:var(--red);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;
+}
+.flow-step.done .num{background:var(--green)}
+.flow-step .body strong{display:block;color:var(--red-dark);font-size:.95rem}
+.flow-step .body span{font-size:.82rem;color:#555}
+.flow-arrow{text-align:center;font-size:1.4rem;color:var(--red);line-height:1}
+.flow-controls{text-align:center;margin-top:18px}
+.flow-tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.7rem;font-weight:700;margin-left:8px}
+.tag-besar{background:var(--red-light);color:var(--red-dark)}
+.tag-kecil{background:var(--blue-light);color:var(--blue-dark)}
+
+/* ===== QUIZ ===== */
+.quiz-q{
+  background:#f8f9fa;border-radius:14px;padding:18px;margin-bottom:14px;border-left:5px solid var(--yellow);
+}
+.quiz-q .q-text{font-weight:700;margin-bottom:12px;color:var(--text)}
+.quiz-q label{
+  display:block;padding:9px 14px;margin-bottom:6px;background:#fff;border-radius:10px;
+  border:2px solid #e0e0e0;cursor:pointer;transition:all .15s;font-size:.9rem;
+}
+.quiz-q label:hover{border-color:var(--red);background:#fff5f5}
+.quiz-q input{margin-right:8px;accent-color:var(--red)}
+.feedback{
+  display:none;margin-top:10px;padding:10px 14px;border-radius:10px;font-size:.85rem;
+}
+.feedback.correct{background:#e8f5e9;color:#1b5e20;border-left:4px solid var(--green);display:block}
+.feedback.wrong{background:#ffebee;color:#b71c1c;border-left:4px solid var(--red);display:block}
+.quiz-score{
+  text-align:center;font-size:1.2rem;font-weight:800;padding:16px;border-radius:14px;
+  margin-top:16px;display:none;
+}
+.quiz-score.show{display:block;animation:fadeIn .4s ease}
+
+/* ===== TANTANGAN ===== */
+.input-row{display:flex;gap:12px;flex-wrap:wrap;margin:10px 0}
+.input-row input{
+  flex:1;min-width:140px;padding:10px 14px;border:2px solid #e0e0e0;border-radius:10px;
+  font-size:.95rem;font-family:inherit;
+}
+.input-row input:focus{outline:none;border-color:var(--red)}
+textarea{
+  width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:10px;
+  font-family:inherit;font-size:.92rem;resize:vertical;min-height:80px;
+}
+textarea:focus{outline:none;border-color:var(--red)}
+.step-list{counter-reset:s;list-style:none}
+.step-list li{
+  counter-increment:s;padding:12px 12px 12px 50px;position:relative;
+  background:#f8f9fa;border-radius:12px;margin-bottom:10px;font-size:.92rem;
+}
+.step-list li::before{
+  content:counter(s);position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:50%;background:var(--red);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;
+}
+.confetti{font-size:2.4rem;text-align:center;margin:12px 0}
+
+@media(max-width:600px){
+  .match-wrap{grid-template-columns:1fr}
+  header h1{font-size:1.2rem}
+  .card{padding:18px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <h1>❤️ Petualangan Darah</h1>
+  <p>Yuk, jelajahi sistem peredaran darah manusia! — IPA Kelas 5 SD</p>
+</header>
+
+<nav id="nav">
+  <button class="nav-btn active" data-screen="pemantik">🎬 1. Pemantik</button>
+  <button class="nav-btn" data-screen="organ">🫀 2. Organ</button>
+  <button class="nav-btn" data-screen="fungsi">🔗 3. Fungsi</button>
+  <button class="nav-btn" data-screen="alur-besar">🔴 4. Alur Besar</button>
+  <button class="nav-btn" data-screen="alur-kecil">🔵 5. Alur Kecil</button>
+  <button class="nav-btn" data-screen="kuis">📝 6. Kuis</button>
+  <button class="nav-btn" data-screen="tantangan">🚀 7. Tantangan</button>
+</nav>
+
+<!-- ================= PEMANTIK ================= -->
+<section id="pemantik" class="screen active">
+  <div class="card">
+    <h2>🎬 Ayo Mulai Petualangan!</h2>
+    <div class="story-box">
+      <span class="emoji">🏃‍♂️💨</span>
+      <p><strong>Cerita Raka</strong></p>
+      <p>Hari itu Raka ikut lomba lari keliling sekolah. Baru setengah putaran, ia sudah
+      terengah-engah. Setelah garis finis, Raka memegang dadanya — <em>dug dug dug</em> —
+      jantungnya berdebar sangat kencang!</p>
+      <p>Raka bertanya dalam hati: <em>"Kenapa ya jantungku berdebar lebih cepat saat berlari?
+      Ke mana saja darahku mengalir?"</em></p>
+    </div>
+
+    <h3>💡 Teka-teki Pemantik</h3>
+    <div class="riddle">
+      <div class="q">Aku adalah sebuah "pompa" yang tak pernah istirahat.<br>
+      Siang malam aku bekerja, memompa cairan merah ke seluruh tubuh.<br>
+      Siapakah aku?</div>
+      <button class="btn" onclick="document.getElementById('riddle-ans').classList.add('show')">
+        👀 Lihat Jawaban
+      </button>
+      <div class="a" id="riddle-ans">🫀 <strong>JANTUNG!</strong> Jantung adalah pompa utama tubuh kita.
+      Ia berdetak sekitar 60–100 kali per menit, memompa darah ke seluruh tubuh.</div>
+    </div>
+
+    <h3>🎵 Rasakan Detak Jantungmu!</h3>
+    <div class="heart-demo">
+      <div class="heart-big" id="heartBig">❤️</div>
+      <div class="bpm-display" id="bpmDisplay">Klik tombol di bawah untuk merasakan detak jantung</div>
+      <button class="btn" style="margin-top:12px" onclick="simulateHeartbeat()">
+        💓 Rasakan Detak Jantung
+      </button>
+    </div>
+
+    <p style="margin-top:16px;font-size:.9rem;color:#666">
+      🔍 <em>Pertanyaan untuk didiskusikan:</em> Mengapa saat kita berolahraga, jantung kita
+      berdebar lebih cepat daripada saat duduk tenang?
+    </p>
+    <div style="text-align:right;margin-top:14px">
+      <button class="btn" onclick="goTo('organ')">Lanjut ke Materi ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ORGAN ================= -->
+<section id="organ" class="screen">
+  <div class="card">
+    <h2>🫀 Mengenal Organ Peredaran Darah</h2>
+    <p>Klik setiap kartu untuk membuka rahasianya! Jelajahi semua organ untuk menyelesaikan misi ini. 👇</p>
+    <div class="organ-grid" id="organGrid">
+      <div class="organ-card" data-organ="jantung">
+        <div class="icon">🫀</div><div class="name">Jantung</div>
+        <div class="desc">Pompa utama tubuh. Berdetak ±60–100×/menit untuk memompa darah ke seluruh tubuh.</div>
+      </div>
+      <div class="organ-card" data-organ="arteri">
+        <div class="icon">🔴</div><div class="name">Pembuluh Arteri</div>
+        <div class="desc">Membawa darah <strong>kaya oksigen</strong> dari jantung ke seluruh tubuh. Dindingnya tebal dan elastis.</div>
+      </div>
+      <div class="organ-card" data-organ="vena">
+        <div class="icon">🔵</div><div class="name">Pembuluh Vena</div>
+        <div class="desc">Membawa darah <strong>kaya karbon dioksida</strong> dari tubuh kembali ke jantung.</div>
+      </div>
+      <div class="organ-card" data-organ="kapiler">
+        <div class="icon">🟣</div><div class="name">Pembuluh Kapiler</div>
+        <div class="desc">Pembuluh super kecil. Tempat <strong>pertukaran oksigen dan nutrisi</strong> ke sel-sel tubuh.</div>
+      </div>
+      <div class="organ-card" data-organ="darah">
+        <div class="icon">🩸</div><div class="name">Darah</div>
+        <div class="desc">Cairan merah pengangkut oksigen, nutrisi, dan sisa metabolisme. Mengandung sel darah merah, putih, dan keping darah.</div>
+      </div>
+      <div class="organ-card" data-organ="paru">
+        <div class="icon">🫁</div><div class="name">Paru-paru</div>
+        <div class="desc">Tempat darah mengambil oksigen dan membuang karbon dioksida. Mitra kerja jantung!</div>
+      </div>
+    </div>
+    <div id="organProgress" style="text-align:center;margin-top:18px;font-weight:700;color:var(--red-dark)">
+      0 dari 6 organ dijelajahi
+    </div>
+    <div style="text-align:right;margin-top:14px">
+      <button class="btn" onclick="goTo('fungsi')">Lanjut ke Fungsi ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FUNGSI (MATCHING) ================= -->
+<section id="fungsi" class="screen">
+  <div class="card">
+    <h2>🔗 Mini-Game: Cocokkan Organ & Fungsinya!</h2>
+    <p>Klik salah satu <strong>organ</strong> di kiri, lalu klik <strong>fungsi</strong> yang tepat di kanan. Cocokkan keempat pasangannya!</p>
+    <div class="match-wrap">
+      <div class="match-col">
+        <h3>🫀 Organ</h3>
+        <div class="match-item organ-item" data-match="jantung">❤️ Jantung</div>
+        <div class="match-item organ-item" data-match="arteri">🔴 Arteri</div>
+        <div class="match-item organ-item" data-match="vena">🔵 Vena</div>
+        <div class="match-item organ-item" data-match="kapiler">🟣 Kapiler</div>
+      </div>
+      <div class="match-col">
+        <h3>🎯 Fungsi</h3>
+        <div class="match-item function-item" data-match="kapiler">Tempat pertukaran oksigen & nutrisi dengan sel</div>
+        <div class="match-item function-item" data-match="jantung">Memompa darah ke seluruh tubuh</div>
+        <div class="match-item function-item" data-match="arteri">Membawa darah kaya oksigen dari jantung</div>
+        <div class="match-item function-item" data-match="vena">Membawa darah kaya CO₂ kembali ke jantung</div>
+      </div>
+    </div>
+    <div class="match-feedback" id="matchFeedback"></div>
+    <div style="text-align:right;margin-top:14px">
+      <button class="btn" onclick="goTo('alur-besar')">Lanjut ke Alur Besar ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ALUR BESAR ================= -->
+<section id="alur-besar" class="screen">
+  <div class="card">
+    <h2>🔴 Alur Peredaran Darah Besar <span class="flow-tag tag-besar">Sirkulasi Sistemik</span></h2>
+    <p>Peredaran darah besar mengalir dari <strong>jantung → seluruh tubuh → jantung</strong>. Darah membawa oksigen dan nutrisi ke seluruh tubuh. Klik tombol untuk melihat animasinya!</p>
+    <div class="flow" id="flowBesar">
+      <div class="flow-step" data-step="1">
+        <div class="num">1</div>
+        <div class="body"><strong>Jantung (Bilik Kiri)</strong><span>Darah kaya oksigen dipompa keluar menuju aorta.</span></div>
+      </div>
+      <div class="flow-arrow">⬇</div>
+      <div class="flow-step" data-step="2">
+        <div class="num">2</div>
+        <div class="body"><strong>Aorta (Pembuluh Arteri Terbesar)</strong><span>Darah mengalir deras melalui aorta menuju seluruh tubuh.</span></div>
+      </div>
+      <div class="flow-arrow">⬇</div>
+      <div class="flow-step" data-step="3">
+        <div class="num">3</div>
+        <div class="body"><strong>Seluruh Tubuh (Melalui Kapiler)</strong><span>Oksigen & nutrisi diserahkan ke sel. Darah menyerap CO₂ dan sisa metabolisme.</span></div>
+      </div>
+      <div class="flow-arrow">⬇</div>
+      <div class="flow-step" data-step="4">
+        <div class="num">4</div>
+        <div class="body"><strong>Vena Cava (Pembuluh Vena Besar)</strong><span>Darah kaya CO₂ kembali menuju jantung (serambi kanan).</span></div>
+      </div>
+    </div>
+    <div class="flow-controls">
+      <button class="btn" onclick="runFlow('flowBesar')">▶️ Jalankan Animasi Alur</button>
+    </div>
+    <div style="background:#fff3e0;border-left:4px solid var(--yellow);border-radius:12px;padding:14px;margin-top:18px;font-size:.88rem">
+      💡 <strong>Ingat!</strong> Peredaran darah besar = <em>Jantung → Tubuh → Jantung</em>. Darah membawa <strong>O₂ dan nutrisi</strong> ke tubuh, lalu membawa <strong>CO₂</strong> kembali ke jantung.
+    </div>
+    <div style="text-align:right;margin-top:14px">
+      <button class="btn" onclick="goTo('alur-kecil')">Lanjut ke Alur Kecil ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ALUR KECIL ================= -->
+<section id="alur-kecil" class="screen">
+  <div class="card">
+    <h2>🔵 Alur Peredaran Darah Kecil <span class="flow-tag tag-kecil">Sirkulasi Pulmonal</span></h2>
+    <p>Peredaran darah kecil mengalir dari <strong>jantung → paru-paru → jantung</strong>. Tujuannya: mengambil oksigen dan membuang karbon dioksida. Klik tombol untuk melihat!</p>
+    <div class="flow" id="flowKecil">
+      <div class="flow-step" data-step="1">
+        <div class="num">1</div>
+        <div class="body"><strong>Jantung (Bilik Kanan)</strong><span>Darah kaya CO₂ dipompa keluar menuju arteri pulmonalis.</span></div>
+      </div>
+      <div class="flow-arrow">⬇</div>
+      <div class="flow-step" data-step="2">
+        <div class="num">2</div>
+        <div class="body"><strong>Arteri Pulmonalis</strong><span>Membawa darah kaya CO₂ menuju paru-paru.</span></div>
+      </div>
+      <div class="flow-arrow">⬇</div>
+      <div class="flow-step" data-step="3">
+        <div class="num">3</div>
+        <div class="body"><strong>Paru-paru 🫁</strong><span>Terjadi pertukaran gas: darah mengambil O₂ dan melepas CO₂.</span></div>
+      </div>
+      <div class="flow-arrow">⬇</div>
+      <div class="flow-step" data-step="4">
+        <div class="num">4</div>
+        <div class="body"><strong>Vena Pulmonalis</strong><span>Darah kaya O₂ kembali menuju jantung (serambi kiri).</span></div>
+      </div>
+    </div>
+    <div class="flow-controls">
+      <button class="btn blue" onclick="runFlow('flowKecil')">▶️ Jalankan Animasi Alur</button>
+    </div>
+    <div style="background:#e3f2fd;border-left:4px solid var(--blue);border-radius:12px;padding:14px;margin-top:18px;font-size:.88rem">
+      💡 <strong>Ingat!</strong> Peredaran darah kecil = <em>Jantung → Paru-paru → Jantung</em>. Tujuannya <strong>menukar gas</strong>: ambil O₂, buang CO₂.
+    </div>
+    <div style="text-align:right;margin-top:14px">
+      <button class="btn" onclick="goTo('kuis')">Lanjut ke Kuis ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= KUIS ================= -->
+<section id="kuis" class="screen">
+  <div class="card">
+    <h2>📝 Kuis Formatif: Uji Pemahamanmu!</h2>
+    <p>Jawab 5 pertanyaan berikut. Pilih jawaban yang paling tepat, lalu klik <strong>Cek Jawaban</strong>!</p>
+    <div id="quizContainer"></div>
+    <div style="text-align:center;margin-top:18px">
+      <button class="btn green" onclick="checkQuiz()">✅ Cek Jawaban</button>
+    </div>
+    <div class="quiz-score" id="quizScore"></div>
+    <div style="text-align:right;margin-top:18px">
+      <button class="btn" onclick="goTo('tantangan')">Lanjut ke Tantangan ➜</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TANTANGAN ================= -->
+<section id="tantangan" class="screen">
+  <div class="card">
+    <h2>🚀 Tantangan Tindak Lanjut: Detektif Detak Jantung!</h2>
+    <p>Waktunya jadi ilmuwan sungguhan! Lakukan eksperimen ini di rumah bersama keluargamu.</p>
+
+    <h3>🧪 Langkah Kegiatan:</h3>
+    <ol class="step-list">
+      <li>Duduk tenang selama 1 menit. Letakkan 2 jari di pergelangan tangan atau leher, rasakan detak jantungmu.</li>
+      <li>Hitung jumlah detak selama 15 detik. Kalikan 4 → itulah detak jantung per menit (BPM).</li>
+      <li>Lompat di tempat selama 30 detik. Segera hitung lagi detak jantungmu!</li>
+      <li>Catat hasilnya di kolom di bawah ini.</li>
+      <li>Diskusikan dengan keluarga: <em>Mengapa hasilnya berbeda?</em></li>
+    </ol>
+
+    <h3>📊 Catat Hasil Eksperimenmu:</h3>
+    <div class="input-row">
+      <input type="number" id="bpmRest" placeholder="Detak saat duduk (BPM)">
+      <input type="number" id="bpmActive" placeholder="Detak setelah lompat (BPM)">
+    </div>
+
+    <h3>🤔 Refleksi:</h3>
+    <p style="font-size:.88rem;color:#555">Menurutmu, mengapa detak jantung bisa berubah? Tuliskan penjelasanmu (hubungkan dengan fungsi jantung dan peredaran darah).</p>
+    <textarea id="reflection" placeholder="Tuliskan refleksimu di sini..."></textarea>
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn green" onclick="submitChallenge()">🎉 Kumpulkan Jawaban!</button>
+    </div>
+    <div id="challengeResult" style="text-align:center;margin-top:16px"></div>
+
+    <div style="background:linear-gradient(135deg,#f1f8e9,#dcedc8);border-radius:14px;padding:18px;margin-top:20px;font-size:.9rem">
+      🌟 <strong>Misi Keluarga:</strong> Ajak ayah/ibu/kakak ikut mengukur detak jantung mereka!
+      Bandingkan hasilnya. Siapa yang detak jantungnya paling cepat setelah berolahraga? Ceritakan temuanmu di kelas besok!
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+/* ========== NAVIGASI ========== */
+const completed = new Set();
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const btn = document.querySelector(`.nav-btn[data-screen="${id}"]`);
+  if(btn) btn.classList.add('active');
+  markCompleted(id);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>goTo(btn.dataset.screen));
+});
+function markCompleted(id){
+  if(completed.has(id)) return;
+  completed.add(id);
+  const btn = document.querySelector(`.nav-btn[data-screen="${id}"]`);
+  if(btn && !btn.querySelector('.check')){
+    const span = document.createElement('span');
+    span.className='check'; span.textContent=' ✓';
+    btn.appendChild(span);
+  }
+}
+
+/* ========== PEMANTIK: SIMULASI DETAK ========== */
+let beatTimer = null;
+function simulateHeartbeat(){
+  const heart = document.getElementById('heartBig');
+  const display = document.getElementById('bpmDisplay');
+  if(beatTimer){ clearInterval(beatTimer); beatTimer=null; }
+  heart.classList.add('beating');
+  let bpm = 72;
+  display.textContent = `💓 Detak jantung istirahat: ~${bpm} BPM`;
+  let tick = 0;
+  beatTimer = setInterval(()=>{
+    tick++;
+    if(tick % 2 === 0){
+      bpm += Math.floor(Math.random()*4)+1;
+      display.textContent = `💓 Detak jantung: ~${bpm} BPM — makin cepat!`;
+    }
+    if(tick >= 16){
+      clearInterval(beatTimer); beatTimer=null;
+      heart.classList.remove('beating');
+      display.textContent = `😮 Selesai! Saat berolahraga, jantung bisa berdetak 120–160 BPM!`;
+    }
+  },600);
+}
+
+/* ========== ORGAN CARDS ========== */
+let explored = 0;
+document.querySelectorAll('.organ-card').forEach(card=>{
+  card.addEventListener('click',()=>{
+    if(card.classList.contains('revealed')) return;
+    card.classList.add('revealed');
+    explored++;
+    document.getElementById('organProgress').textContent =
+      `${explored} dari 6 organ dijelajahi` + (explored===6?' 🎉 Hebat!':'');
+    if(explored===6) markCompleted('organ');
+  });
+});
+
+/* ========== MATCHING GAME ========== */
+let selectedOrgan = null;
+let matchedCount = 0;
+document.querySelectorAll('.organ-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    if(item.classList.contains('matched')) return;
+    document.querySelectorAll('.organ-item').forEach(i=>i.classList.remove('selected'));
+    selectedOrgan = item;
+    item.classList.add('selected');
+  });
+});
+document.querySelectorAll('.function-item').forEach(item=>{
+  item.addEventListener('click',()=>{
+    if(!selectedOrgan || item.classList.contains('matched')){
+      if(!selectedOrgan) document.getElementById('matchFeedback').textContent='Pilih organ dulu di sebelah kiri! 👈';
+      return;
+    }
+    if(selectedOrgan.dataset.match === item.dataset.match){
+      selectedOrgan.classList.add('matched');
+      selectedOrgan.classList.remove('selected');
+      item.classList.add('matched');
+      matchedCount++;
+      selectedOrgan = null;
+      const fb = document.getElementById('matchFeedback');
+      if(matchedCount === 4){
+        fb.textContent = '🎉 Hebat! Semua pasangan benar!';
+        fb.style.color = 'var(--green)';
+        markCompleted('fungsi');
+      } else {
+        fb.textContent = `✅ Benar! (${matchedCount}/4)`;
+        fb.style.color = 'var(--green)';
+      }
+    } else {
+      item.classList.add('shake');
+      setTimeout(()=>item.classList.remove('shake'),500);
+      const fb = document.getElementById('matchFeedback');
+      fb.textContent = '❌ Belum tepat. Coba lagi!';
+      fb.style.color = 'var(--red)';
+      selectedOrgan.classList.remove('selected');
+      selectedOrgan = null;
+    }
+  });
+});
+
+/* ========== FLOW ANIMASI ========== */
+function runFlow(flowId){
+  const flow = document.getElementById(flowId);
+  const steps = flow.querySelectorAll('.flow-step');
+  steps.forEach(s=>s.classList.remove('active','done'));
+  steps.forEach((step,i)=>{
+    setTimeout(()=>{
+      if(i>0) steps[i-1].classList.add('done'), steps[i-1].classList.remove('active');
+      step.classList.add('active');
+      if(i === steps.length-1){
+        setTimeout(()=>{
+          step.classList.remove('active');
+          step.classList.add('done');
+        },900);
+      }
+    }, i*1100);
+  });
+}
+
+/* ========== KUIS ========== */
+const quizData = [
+  {
+    q: "1. Organ yang berfungsi memompa darah ke seluruh tubuh adalah...",
+    opts: {a:"Paru-paru", b:"Jantung", c:"Ginjal", d:"Lambung"},
+    ans: "b",
+    fb: "✅ Tepat! Jantung adalah pompa utama. Ia berdetak ±60–100 kali/menit untuk memompa darah ke seluruh tubuh."
+  },
+  {
+    q: "2. Pembuluh darah yang membawa darah kaya oksigen dari jantung ke seluruh tubuh adalah...",
+    opts: {a:"Vena", b:"Kapiler", c:"Arteri", d:"Limfa"},
+    ans: "c",
+    fb: "✅ Benar! Arteri membawa darah kaya O₂ dari jantung. Warnanya merah cerah dan dindingnya tebal."
+  },
+  {
+    q: "3. Urutan alur peredaran darah BESAR yang benar adalah...",
+    opts: {
+      a:"Jantung → Paru-paru → Jantung",
+      b:"Jantung → Seluruh tubuh → Jantung",
+      c:"Paru-paru → Jantung → Tubuh",
+      d:"Tubuh → Paru-paru → Jantung"
+    },
+    ans: "b",
+    fb: "✅ Tepat! Peredaran darah besar = Jantung → Tubuh → Jantung. Darah membawa O₂ ke tubuh, lalu membawa CO₂ kembali."
+  },
+  {
+    q: "4. Ketika kamu berlari, mengapa jantungmu berdebar lebih cepat?",
+    opts: {
+      a:"Karena jantung sedang istirahat",
+      b:"Karena tubuh membutuhkan lebih banyak oksigen dan nutrisi",
+      c:"Karena darah berhenti mengalir",
+      d:"Karena paru-paru mengecil"
+    },
+    ans: "b",
+    fb: "✅ Benar! Saat berolahraga, otot butuh lebih banyak O₂. Jantung memompa lebih cepat untuk memenuhi kebutuhan itu."
+  },
+  {
+    q: "5. Pada peredaran darah KECIL, darah dari jantung menuju ke...",
+    opts: {a:"Seluruh tubuh", b:"Ginjal", c:"Paru-paru", d:"Otak"},
+    ans: "c",
+    fb: "✅ Tepat! Peredaran darah kecil membawa darah dari jantung ke paru-paru untuk mengambil oksigen dan membuang CO₂."
+  }
+];
+
+// Render kuis
+const quizContainer = document.getElementById('quizContainer');
+quizData.forEach((item, idx)=>{
+  const div = document.createElement('div');
+  div.className = 'quiz-q';
+  let optHTML = '';
+  Object.entries(item.opts).forEach(([key, val])=>{
+    optHTML += `<label><input type="radio" name="q${idx}" value="${key}"> ${key.toUpperCase()}. ${val}</label>`;
+  });
+  div.innerHTML = `<div class="q-text">${item.q}</div>${optHTML}<div class="feedback" id="fb${idx}"></div>`;
+  quizContainer.appendChild(div);
+});
+
+function checkQuiz(){
+  let correct = 0;
+  quizData.forEach((item, idx)=>{
+    const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+    const fbEl = document.getElementById(`fb${idx}`);
+    if(selected){
+      if(selected.value === item.ans){
+        correct++;
+        fbEl.className = 'feedback correct';
+        fbEl.textContent = item.fb;
+      } else {
+        fbEl.className = 'feedback wrong';
+        fbEl.textContent = `❌ Belum tepat. Jawaban yang benar: ${item.ans.toUpperCase()}. — ${item.fb.replace('✅ ','').replace('Tepat! ','').replace('Benar! ','')}`;
+      }
+    } else {
+      fbEl.className = 'feedback wrong';
+      fbEl.textContent = '⚠️ Kamu belum memilih jawaban untuk soal ini.';
+    }
+  });
+  const scoreEl = document.getElementById('quizScore');
+  scoreEl.classList.add('show');
+  let emoji, msg;
+  if(correct === 5){ emoji='🏆'; msg='Luar biasa! Kamu sudah paham betul!'; markCompleted('kuis'); }
+  else if(correct >= 3){ emoji='👍'; msg='Bagus! Sedikit lagi sempurna!'; }
+  else { emoji='💪'; msg='Ayo pelajari lagi materinya, kamu pasti bisa!'; }
+  scoreEl.innerHTML = `${emoji} Skor: <strong>${correct}/5</strong><br><span style="font-size:.95rem;font-weight:600">${msg}</span>`;
+  scoreEl.style.background = correct >= 3 ? '#e8f5e9' : '#fff3e0';
+  scoreEl.style.color = correct >= 3 ? '#1b5e20' : '#e65100';
+}
+
+/* ========== TANTANGAN ========== */
+function submitChallenge(){
+  const rest = document.getElementById('bpmRest').value;
+  const active = document.getElementById('bpmActive').value;
+  const refl = document.getElementById('reflection').value.trim();
+  const result = document.getElementById('challengeResult');
+
+  if(!rest || !active || !refl){
+    result.innerHTML = '<div style="color:var(--red);font-weight:700">⚠️ Isi semua kolom dulu ya, Detektif!</div>';
+    return;
+  }
+
+  const diff = active - rest;
+  let analysis = '';
+  if(diff > 0){
+    analysis = `Detak jantungmu naik <strong>${diff} BPM</strong> setelah berolahraga! 🎉 Itu karena otot membutuhkan lebih banyak oksigen, sehingga jantung bekerja lebih cepat.`;
+  } else {
+    analysis = `Hmm, coba periksa lagi hasilmu. Normalnya detak jantung naik setelah berolahraga.`;
+  }
+
+  result.innerHTML = `
+    <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:14px;padding:18px;font-size:.92rem">
+      <div class="confetti">🎉🕵️‍♂️🔍</div>
+      <strong style="font-size:1.05rem;color:#1b5e20">Hebat, Detektif Detak Jantung!</strong>
+      <p style="margin-top:10px">${analysis}</p>
+      <p style="margin-top:10px"><strong>Refleksimu:</strong> "${refl}"</p>
+      <p style="margin-top:10px;color:#2e7d32">✅ Laporan eksperimenmu sudah lengkap! Ceritakan hasilnya di kelas besok!</p>
+    </div>
+  `;
+  markCompleted('tantangan');
+}
+
+/* ========== INIT ========== */
+// Tandai screen pertama selesai saat di-scroll/next
+</script>
+</body>
+</html>
